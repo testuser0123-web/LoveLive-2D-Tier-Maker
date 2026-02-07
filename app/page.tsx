@@ -86,6 +86,12 @@ export default function TierMaker() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [includeTitleInExport, setIncludeTitleInExport] = useState(true);
 
+  // Local input states to allow clearing/typing
+  const [rangeInputs, setRangeInputs] = useState<Record<string, string>>({
+    minX: "-10", maxX: "10", minY: "-10", maxY: "10"
+  });
+  const [coordInputs, setCoordInputs] = useState<{x: string, y: string}>({ x: "0", y: "0" });
+
   // Load from API and LocalStorage
   useEffect(() => {
     const fetchData = async () => {
@@ -151,6 +157,27 @@ export default function TierMaker() {
 
     fetchData();
   }, []);
+
+  // Update local range inputs when axisRanges changes (e.g. on project load)
+  useEffect(() => {
+    setRangeInputs({
+      minX: axisRanges.minX.toString(),
+      maxX: axisRanges.maxX.toString(),
+      minY: axisRanges.minY.toString(),
+      maxY: axisRanges.maxY.toString(),
+    });
+  }, [axisRanges]);
+
+  // Update local coord inputs when selected icon changes
+  useEffect(() => {
+    const selectedIcon = placedIcons.find(icon => icon.id === selectedIconId);
+    if (selectedIcon) {
+      setCoordInputs({
+        x: percentToVal(selectedIcon.x, axisRanges.minX, axisRanges.maxX, false).toFixed(1),
+        y: percentToVal(selectedIcon.y, axisRanges.minY, axisRanges.maxY, true).toFixed(1),
+      });
+    }
+  }, [selectedIconId, draggingId]); // draggingId also triggers it to keep inputs in sync while dragging
 
   // Auto-save current project
   useEffect(() => {
@@ -241,7 +268,6 @@ export default function TierMaker() {
     setPlacedIcons(project.placedIcons);
     setAxisLabels(project.axisLabels);
     setVisibleLabels(project.visibleLabels);
-    // Provide defaults for old projects that don't have axisRanges
     setAxisRanges(project.axisRanges || {
       minX: -10,
       maxX: 10,
@@ -296,10 +322,11 @@ export default function TierMaker() {
     setVisibleLabels({ ...visibleLabels, [key]: !visibleLabels[key] });
   };
 
-  const updateRange = (key: keyof AxisRanges, value: string) => {
+  const handleRangeInputChange = (key: keyof AxisRanges, value: string) => {
+    setRangeInputs(prev => ({ ...prev, [key]: value }));
     const num = parseFloat(value);
     if (!isNaN(num)) {
-      setAxisRanges({ ...axisRanges, [key]: num });
+      setAxisRanges(prev => ({ ...prev, [key]: num }));
     }
   };
 
@@ -342,10 +369,8 @@ export default function TierMaker() {
     setDraggingId(null);
   };
 
-  // Coordinate mapping functions
   const percentToVal = (percent: number, min: number, max: number, isY = false) => {
     if (isY) {
-      // For Y, 0% is top (max value) and 100% is bottom (min value)
       return max - (percent / 100) * (max - min);
     }
     return min + (percent / 100) * (max - min);
@@ -360,9 +385,11 @@ export default function TierMaker() {
     return percent;
   };
 
-  const updateSelectedIconCoord = (axis: 'x' | 'y', valStr: string) => {
+  const handleCoordInputChange = (axis: 'x' | 'y', value: string) => {
+    setCoordInputs(prev => ({ ...prev, [axis]: value }));
     if (!selectedIconId) return;
-    const val = parseFloat(valStr);
+    
+    const val = parseFloat(value);
     if (isNaN(val)) return;
 
     setPlacedIcons(placedIcons.map(icon => {
@@ -533,8 +560,8 @@ export default function TierMaker() {
                     value={modalInputName}
                     onChange={(e) => setModalInputName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all"
-                    style={{ focusRingColor: LL_PINK } as any}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all text-gray-900"
+                    style={{ '--tw-ring-color': LL_PINK } as any}
                     placeholder="名前を入力してください"
                   />
                 </div>
@@ -569,7 +596,7 @@ export default function TierMaker() {
                 </div>
                 
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium">題名を含める</span>
+                  <span className="font-medium text-gray-900">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
                     className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? '' : 'bg-gray-300'}`}
@@ -601,9 +628,7 @@ export default function TierMaker() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
-            {/* Icon Selector */}
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
                 <Plus size={18} style={{ color: LL_PINK }} />
@@ -629,7 +654,7 @@ export default function TierMaker() {
                 </div>
               )}
 
-              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1 text-gray-900">
                 {activeFolder && icons[activeFolder]?.map((src, index) => {
                   const isPlaced = placedIcons.some((icon) => icon.src === src);
                   return (
@@ -651,7 +676,6 @@ export default function TierMaker() {
               </div>
             </div>
 
-            {/* Selected Icon Settings */}
             {selectedIcon && (
               <div className="bg-white p-4 md:p-5 rounded-xl shadow-lg border-2 animate-in slide-in-from-left duration-200" style={{ borderColor: LL_PINK }}>
                 <h2 className="text-base md:text-lg font-bold mb-3 flex items-center gap-2" style={{ color: LL_PINK }}>
@@ -660,27 +684,25 @@ export default function TierMaker() {
                 </h2>
                 <div className="flex items-center gap-4 mb-4">
                   <img src={selectedIcon.src} className="w-12 h-12 rounded-full border-2 border-gray-100 shadow-sm" />
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="flex-1 grid grid-cols-2 gap-2 text-gray-900">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase">X座標</label>
                       <input 
-                        type="number" 
-                        step="0.1"
-                        value={percentToVal(selectedIcon.x, axisRanges.minX, axisRanges.maxX, false).toFixed(1)}
-                        onChange={(e) => updateSelectedIconCoord('x', e.target.value)}
-                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 outline-none"
-                        style={{ focusRingColor: LL_PINK } as any}
+                        type="text" 
+                        value={coordInputs.x}
+                        onChange={(e) => handleCoordInputChange('x', e.target.value)}
+                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2"
+                        style={{ '--tw-ring-color': LL_PINK } as any}
                       />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase">Y座標</label>
                       <input 
-                        type="number" 
-                        step="0.1"
-                        value={percentToVal(selectedIcon.y, axisRanges.minY, axisRanges.maxY, true).toFixed(1)}
-                        onChange={(e) => updateSelectedIconCoord('y', e.target.value)}
-                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 outline-none"
-                        style={{ focusRingColor: LL_PINK } as any}
+                        type="text" 
+                        value={coordInputs.y}
+                        onChange={(e) => handleCoordInputChange('y', e.target.value)}
+                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2"
+                        style={{ '--tw-ring-color': LL_PINK } as any}
                       />
                     </div>
                   </div>
@@ -695,12 +717,11 @@ export default function TierMaker() {
               </div>
             )}
 
-            {/* Axis Labels & Visibility */}
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
               <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
                 軸のラベル設定
               </h2>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 text-gray-900">
                 {(["top", "bottom", "left", "right"] as const).map((key) => (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center">
@@ -729,46 +750,45 @@ export default function TierMaker() {
               </div>
             </div>
 
-            {/* Axis Range Settings */}
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
               <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
                 <Settings2 size={18} />
                 数値の範囲設定
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-gray-900">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最小値</label>
                   <input 
-                    type="number" 
-                    value={axisRanges.minX}
-                    onChange={(e) => updateRange('minX', e.target.value)}
+                    type="text" 
+                    value={rangeInputs.minX}
+                    onChange={(e) => handleRangeInputChange('minX', e.target.value)}
                     className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最大値</label>
                   <input 
-                    type="number" 
-                    value={axisRanges.maxX}
-                    onChange={(e) => updateRange('maxX', e.target.value)}
+                    type="text" 
+                    value={rangeInputs.maxX}
+                    onChange={(e) => handleRangeInputChange('maxX', e.target.value)}
                     className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Y軸 最小値</label>
                   <input 
-                    type="number" 
-                    value={axisRanges.minY}
-                    onChange={(e) => updateRange('minY', e.target.value)}
+                    type="text" 
+                    value={rangeInputs.minY}
+                    onChange={(e) => handleRangeInputChange('minY', e.target.value)}
                     className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Y軸 最大値</label>
                   <input 
-                    type="number" 
-                    value={axisRanges.maxY}
-                    onChange={(e) => updateRange('maxY', e.target.value)}
+                    type="text" 
+                    value={rangeInputs.maxY}
+                    onChange={(e) => handleRangeInputChange('maxY', e.target.value)}
                     className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
                   />
                 </div>
@@ -776,7 +796,6 @@ export default function TierMaker() {
             </div>
           </div>
 
-          {/* Main Area: The Plot */}
           <div className="lg:col-span-3 order-1 lg:order-2">
             <div
               ref={plotRef}
@@ -788,7 +807,6 @@ export default function TierMaker() {
               onMouseLeave={handleDragEnd}
               onClick={() => setSelectedIconId(null)}
             >
-              {/* Plot Title */}
               <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
                 <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter" style={{ color: `${LL_PINK}33` }}>
                   {currentProject?.name}
@@ -800,7 +818,6 @@ export default function TierMaker() {
                 <div className="h-full w-[2px] bg-gray-200 absolute" />
               </div>
 
-              {/* Axis Labels on Plot */}
               {visibleLabels.top && (
                 <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
                   {axisLabels.top}

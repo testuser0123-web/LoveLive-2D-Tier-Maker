@@ -944,14 +944,14 @@ export default function TierMaker() {
                 </div>
               )}
               {visibleLabels.left && (
-                <div className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute -left-[6px] md:-left-[9px] top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.left}
                 </div>
               )}
               {visibleLabels.right && (
-                <div className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute -right-[6px] md:-right-[9px] top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.right}

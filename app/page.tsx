@@ -973,14 +973,6 @@ export default function TierMaker() {
                 </div>
               ))}
             </div>
-
-            <div className="mt-4 p-3 rounded-lg border text-xs md:text-sm flex items-start gap-2"
-                 style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
-              <span className="text-base">💡</span>
-              <p>
-                「数値の範囲設定」を変更した後、「反映する」ボタンを押すと全ての座標が再計算されます。
-              </p>
-            </div>
           </div>
         </div>
       </div>

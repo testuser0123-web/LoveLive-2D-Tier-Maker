@@ -85,6 +85,7 @@ export default function TierMaker() {
   const [targetProjectId, setTargetProjectId] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [includeTitleInExport, setIncludeTitleInExport] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Local input states to allow clearing/typing without immediate side effects
   const [rangeInputs, setRangeInputs] = useState<Record<string, string>>({
@@ -177,8 +178,9 @@ export default function TierMaker() {
         const valX = percentToVal(icon.x, prev.minX, prev.maxX, false);
         const valY = percentToVal(icon.y, prev.minY, prev.maxY, true);
         
-        const newX = Math.max(0, Math.min(100, valToPercent(valX, axisRanges.minX, axisRanges.maxX, false)));
-        const newY = Math.max(0, Math.min(100, valToPercent(valY, axisRanges.minY, axisRanges.maxY, true)));
+        // 数値を維持するため、新しい範囲に基づいた％を計算（クランプを外して数値を守る）
+        const newX = valToPercent(valX, axisRanges.minX, axisRanges.maxX, false);
+        const newY = valToPercent(valY, axisRanges.minY, axisRanges.maxY, true);
         
         return { ...icon, x: newX, y: newY };
       }));
@@ -452,6 +454,10 @@ export default function TierMaker() {
   const exportImage = async () => {
     if (plotRef.current) {
       try {
+        setIsExporting(true);
+        // Reactの再描画を待つために少し待機
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         const dataUrl = await toPng(plotRef.current, {
           backgroundColor: "#fff",
           cacheBust: true,
@@ -478,6 +484,8 @@ export default function TierMaker() {
       } catch (err) {
         console.error("Export failed", err);
         alert("画像の出力に失敗しました。");
+      } finally {
+        setIsExporting(false);
       }
     }
   };
@@ -881,7 +889,7 @@ export default function TierMaker() {
 
             <div
               ref={plotRef}
-              className="relative aspect-square w-full bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg touch-none select-none"
+              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg touch-none select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
               onMouseMove={handleMouseMove}
               onTouchMove={handleMouseMove}
               onMouseUp={handleDragEnd}
@@ -935,11 +943,11 @@ export default function TierMaker() {
                       src={icon.src}
                       alt="placed"
                       className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all ${
-                        selectedIconId === icon.id
+                        !isExporting && selectedIconId === icon.id
                           ? "scale-110 ring-4 z-50"
                           : "border-white"
                       }`}
-                      style={selectedIconId === icon.id ? { 
+                      style={!isExporting && selectedIconId === icon.id ? { 
                         borderColor: LL_PINK,
                         boxShadow: `0 0 0 4px ${LL_PINK}1A`
                       } : {}}

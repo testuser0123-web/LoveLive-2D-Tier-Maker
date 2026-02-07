@@ -939,7 +939,7 @@ export default function TierMaker() {
               {placedIcons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group touch-none"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group touch-none whitespace-nowrap"
                   style={{ 
                     left: `${icon.x}%`, 
                     top: `${icon.y}%`,
@@ -953,7 +953,7 @@ export default function TierMaker() {
                     <img
                       src={icon.src}
                       alt="placed"
-                      className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all object-cover ${
+                      className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all object-cover flex-shrink-0 min-w-[40px] min-h-[40px] md:min-w-[80px] md:min-h-[80px] ${
                         !isExporting && selectedIconId === icon.id
                           ? "scale-110 ring-4 z-50"
                           : "border-white"

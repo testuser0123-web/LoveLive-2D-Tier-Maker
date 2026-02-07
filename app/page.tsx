@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
-import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3 } from "lucide-react";
+import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target } from "lucide-react";
 
 type PlacedIcon = {
   id: string;
@@ -25,12 +25,20 @@ type VisibleLabels = {
   right: boolean;
 };
 
+type AxisRanges = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
 type Project = {
   id: string;
   name: string;
   placedIcons: PlacedIcon[];
   axisLabels: AxisLabels;
   visibleLabels: VisibleLabels;
+  axisRanges: AxisRanges;
   updatedAt: number;
 };
 
@@ -44,6 +52,7 @@ export default function TierMaker() {
   const [isLoaded, setIsLoaded] = useState(false);
   const plotRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
 
   // Project States
   const [projects, setProjects] = useState<Project[]>([]);
@@ -60,6 +69,12 @@ export default function TierMaker() {
     bottom: true,
     left: true,
     right: true,
+  });
+  const [axisRanges, setAxisRanges] = useState<AxisRanges>({
+    minX: -10,
+    maxX: 10,
+    minY: -10,
+    maxY: 10,
   });
 
   // UI States
@@ -119,6 +134,12 @@ export default function TierMaker() {
             left: true,
             right: true,
           },
+          axisRanges: {
+            minX: -10,
+            maxX: 10,
+            minY: -10,
+            maxY: 10,
+          },
           updatedAt: Date.now()
         };
         setProjects([initialProject]);
@@ -141,6 +162,7 @@ export default function TierMaker() {
             placedIcons,
             axisLabels,
             visibleLabels,
+            axisRanges,
             updatedAt: Date.now()
           };
         }
@@ -151,7 +173,7 @@ export default function TierMaker() {
       localStorage.setItem("lovelive-projects", JSON.stringify(updatedProjects));
       localStorage.setItem("lovelive-current-project-id", currentProjectId);
     }
-  }, [placedIcons, axisLabels, visibleLabels, isLoaded]);
+  }, [placedIcons, axisLabels, visibleLabels, axisRanges, isLoaded]);
 
   const openCreateModal = () => {
     setModalMode("create");
@@ -189,6 +211,12 @@ export default function TierMaker() {
           left: true,
           right: true,
         },
+        axisRanges: {
+          minX: -10,
+          maxX: 10,
+          minY: -10,
+          maxY: 10,
+        },
         updatedAt: Date.now()
       };
 
@@ -213,7 +241,15 @@ export default function TierMaker() {
     setPlacedIcons(project.placedIcons);
     setAxisLabels(project.axisLabels);
     setVisibleLabels(project.visibleLabels);
+    // Provide defaults for old projects that don't have axisRanges
+    setAxisRanges(project.axisRanges || {
+      minX: -10,
+      maxX: 10,
+      minY: -10,
+      maxY: 10,
+    });
     localStorage.setItem("lovelive-current-project-id", project.id);
+    setSelectedIconId(null);
   };
 
   const deleteProject = (id: string, e: React.MouseEvent) => {
@@ -244,10 +280,12 @@ export default function TierMaker() {
       y: 50,
     };
     setPlacedIcons([...placedIcons, newIcon]);
+    setSelectedIconId(newIcon.id);
   };
 
   const removeIcon = (id: string) => {
     setPlacedIcons(placedIcons.filter((icon) => icon.id !== id));
+    if (selectedIconId === id) setSelectedIconId(null);
   };
 
   const updateLabel = (key: keyof AxisLabels, value: string) => {
@@ -258,8 +296,16 @@ export default function TierMaker() {
     setVisibleLabels({ ...visibleLabels, [key]: !visibleLabels[key] });
   };
 
+  const updateRange = (key: keyof AxisRanges, value: string) => {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      setAxisRanges({ ...axisRanges, [key]: num });
+    }
+  };
+
   const handleDragStart = (id: string) => {
     setDraggingId(id);
+    setSelectedIconId(id);
   };
 
   const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
@@ -294,6 +340,41 @@ export default function TierMaker() {
 
   const handleDragEnd = () => {
     setDraggingId(null);
+  };
+
+  // Coordinate mapping functions
+  const percentToVal = (percent: number, min: number, max: number, isY = false) => {
+    if (isY) {
+      // For Y, 0% is top (max value) and 100% is bottom (min value)
+      return max - (percent / 100) * (max - min);
+    }
+    return min + (percent / 100) * (max - min);
+  };
+
+  const valToPercent = (val: number, min: number, max: number, isY = false) => {
+    if (max === min) return 50;
+    const percent = ((val - min) / (max - min)) * 100;
+    if (isY) {
+      return 100 - percent;
+    }
+    return percent;
+  };
+
+  const updateSelectedIconCoord = (axis: 'x' | 'y', valStr: string) => {
+    if (!selectedIconId) return;
+    const val = parseFloat(valStr);
+    if (isNaN(val)) return;
+
+    setPlacedIcons(placedIcons.map(icon => {
+      if (icon.id === selectedIconId) {
+        if (axis === 'x') {
+          return { ...icon, x: Math.max(0, Math.min(100, valToPercent(val, axisRanges.minX, axisRanges.maxX, false))) };
+        } else {
+          return { ...icon, y: Math.max(0, Math.min(100, valToPercent(val, axisRanges.minY, axisRanges.maxY, true))) };
+        }
+      }
+      return icon;
+    }));
   };
 
   const exportImage = async () => {
@@ -333,6 +414,7 @@ export default function TierMaker() {
 
   const folders = Object.keys(icons);
   const currentProject = projects.find(p => p.id === currentProjectId);
+  const selectedIcon = placedIcons.find(icon => icon.id === selectedIconId);
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-8 text-gray-900">
@@ -519,7 +601,9 @@ export default function TierMaker() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
+            {/* Icon Selector */}
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
                 <Plus size={18} style={{ color: LL_PINK }} />
@@ -545,7 +629,7 @@ export default function TierMaker() {
                 </div>
               )}
 
-              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
+              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1">
                 {activeFolder && icons[activeFolder]?.map((src, index) => {
                   const isPlaced = placedIcons.some((icon) => icon.src === src);
                   return (
@@ -558,21 +642,60 @@ export default function TierMaker() {
                           ? "opacity-40 grayscale border-gray-100 cursor-not-allowed"
                           : "border-gray-100"
                       }`}
-                      style={!isPlaced ? { 
-                        borderColor: 'transparent',
-                      } : {}}
+                      style={!isPlaced ? { borderColor: 'transparent' } : {}}
                     >
-                      <img
-                        src={src}
-                        alt="icon"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={src} alt="icon" className="w-full h-full object-cover" />
                     </button>
                   );
                 })}
               </div>
             </div>
 
+            {/* Selected Icon Settings */}
+            {selectedIcon && (
+              <div className="bg-white p-4 md:p-5 rounded-xl shadow-lg border-2 animate-in slide-in-from-left duration-200" style={{ borderColor: LL_PINK }}>
+                <h2 className="text-base md:text-lg font-bold mb-3 flex items-center gap-2" style={{ color: LL_PINK }}>
+                  <Target size={18} />
+                  選択中のアイコン
+                </h2>
+                <div className="flex items-center gap-4 mb-4">
+                  <img src={selectedIcon.src} className="w-12 h-12 rounded-full border-2 border-gray-100 shadow-sm" />
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">X座標</label>
+                      <input 
+                        type="number" 
+                        step="0.1"
+                        value={percentToVal(selectedIcon.x, axisRanges.minX, axisRanges.maxX, false).toFixed(1)}
+                        onChange={(e) => updateSelectedIconCoord('x', e.target.value)}
+                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 outline-none"
+                        style={{ focusRingColor: LL_PINK } as any}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Y座標</label>
+                      <input 
+                        type="number" 
+                        step="0.1"
+                        value={percentToVal(selectedIcon.y, axisRanges.minY, axisRanges.maxY, true).toFixed(1)}
+                        onChange={(e) => updateSelectedIconCoord('y', e.target.value)}
+                        className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 outline-none"
+                        style={{ focusRingColor: LL_PINK } as any}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => removeIcon(selectedIcon.id)}
+                  className="w-full py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={14} />
+                  このアイコンを削除
+                </button>
+              </div>
+            )}
+
+            {/* Axis Labels & Visibility */}
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
               <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
                 軸のラベル設定
@@ -582,25 +705,14 @@ export default function TierMaker() {
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center">
                       <label className="text-[10px] font-bold text-gray-400 uppercase">
-                        {key === "top"
-                          ? "上 (Y軸+)"
-                          : key === "bottom"
-                            ? "下 (Y軸-)"
-                            : key === "left"
-                              ? "左 (X軸-)"
-                              : "右 (X軸+)"}
+                        {key === "top" ? "上 (Y軸+)" : key === "bottom" ? "下 (Y軸-)" : key === "left" ? "左 (X軸-)" : "右 (X軸+)"}
                       </label>
                       <button
                         onClick={() => toggleVisibility(key)}
                         className={`p-1 rounded-md transition-colors ${visibleLabels[key] ? "" : "text-gray-300 hover:bg-gray-50"}`}
                         style={visibleLabels[key] ? { color: LL_PINK, backgroundColor: `${LL_PINK}0D` } : {}}
-                        title={visibleLabels[key] ? "表示中" : "非表示"}
                       >
-                        {visibleLabels[key] ? (
-                          <Eye size={16} />
-                        ) : (
-                          <EyeOff size={16} />
-                        )}
+                        {visibleLabels[key] ? <Eye size={16} /> : <EyeOff size={16} />}
                       </button>
                     </div>
                     <input
@@ -609,20 +721,62 @@ export default function TierMaker() {
                       onChange={(e) => updateLabel(key, e.target.value)}
                       disabled={!visibleLabels[key]}
                       className={`w-full px-3 py-1.5 border rounded-lg outline-none transition-all text-sm ${
-                        visibleLabels[key]
-                          ? "bg-gray-50 border-gray-200"
-                          : "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
+                        visibleLabels[key] ? "bg-gray-50 border-gray-200" : "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
                       }`}
-                      style={visibleLabels[key] ? { 
-                        // Using standard focus ring via CSS classes is better but we use inline for override
-                      } : {}}
                     />
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Axis Range Settings */}
+            <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+              <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
+                <Settings2 size={18} />
+                数値の範囲設定
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最小値</label>
+                  <input 
+                    type="number" 
+                    value={axisRanges.minX}
+                    onChange={(e) => updateRange('minX', e.target.value)}
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最大値</label>
+                  <input 
+                    type="number" 
+                    value={axisRanges.maxX}
+                    onChange={(e) => updateRange('maxX', e.target.value)}
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Y軸 最小値</label>
+                  <input 
+                    type="number" 
+                    value={axisRanges.minY}
+                    onChange={(e) => updateRange('minY', e.target.value)}
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Y軸 最大値</label>
+                  <input 
+                    type="number" 
+                    value={axisRanges.maxY}
+                    onChange={(e) => updateRange('maxY', e.target.value)}
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
+          {/* Main Area: The Plot */}
           <div className="lg:col-span-3 order-1 lg:order-2">
             <div
               ref={plotRef}
@@ -632,6 +786,7 @@ export default function TierMaker() {
               onMouseUp={handleDragEnd}
               onTouchEnd={handleDragEnd}
               onMouseLeave={handleDragEnd}
+              onClick={() => setSelectedIconId(null)}
             >
               {/* Plot Title */}
               <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
@@ -645,24 +800,25 @@ export default function TierMaker() {
                 <div className="h-full w-[2px] bg-gray-200 absolute" />
               </div>
 
+              {/* Axis Labels on Plot */}
               {visibleLabels.top && (
                 <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.top}
+                  {axisLabels.top} ({axisRanges.maxY})
                 </div>
               )}
               {visibleLabels.bottom && (
                 <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.bottom}
+                  {axisLabels.bottom} ({axisRanges.minY})
                 </div>
               )}
               {visibleLabels.left && (
                 <div className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.left}
+                  {axisLabels.left} ({axisRanges.minX})
                 </div>
               )}
               {visibleLabels.right && (
                 <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.right}
+                  {axisLabels.right} ({axisRanges.maxX})
                 </div>
               )}
 
@@ -671,28 +827,23 @@ export default function TierMaker() {
                   key={icon.id}
                   className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group z-10"
                   style={{ left: `${icon.x}%`, top: `${icon.y}%` }}
-                  onMouseDown={() => handleDragStart(icon.id)}
-                  onTouchStart={() => handleDragStart(icon.id)}
+                  onMouseDown={(e) => { e.stopPropagation(); handleDragStart(icon.id); }}
+                  onTouchStart={(e) => { e.stopPropagation(); handleDragStart(icon.id); }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedIconId(icon.id); }}
                 >
                   <div className="relative">
                     <img
                       src={icon.src}
                       alt="placed"
                       className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all ${
-                        draggingId === icon.id
+                        selectedIconId === icon.id
                           ? "scale-110 ring-4 z-50"
                           : "border-white"
                       }`}
-                      style={draggingId === icon.id ? { 
+                      style={selectedIconId === icon.id ? { 
                         borderColor: LL_PINK,
                         boxShadow: `0 0 0 4px ${LL_PINK}1A`
                       } : {}}
-                      onMouseEnter={(e) => {
-                        if (draggingId !== icon.id) e.currentTarget.style.borderColor = `${LL_PINK}33`;
-                      }}
-                      onMouseLeave={(e) => {
-                        if (draggingId !== icon.id) e.currentTarget.style.borderColor = 'white';
-                      }}
                       draggable={false}
                     />
                     <button
@@ -714,7 +865,7 @@ export default function TierMaker() {
                  style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
               <span className="text-base">💡</span>
               <p>
-                「プロジェクト一覧」から保存されたプロットを切り替えたり、新規作成ができます。
+                アイコンをタップすると数値で座標を指定できます。軸の範囲設定から数値のスケールも変更可能です。
               </p>
             </div>
           </div>

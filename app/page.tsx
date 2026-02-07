@@ -377,7 +377,11 @@ export default function TierMaker() {
     });
   };
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
+    if ("touches" in e) {
+      // Don't preventDefault here to allow potential clicks, 
+      // but the move will be handled
+    }
     setDraggingId(id);
     setSelectedIconId(id);
   };
@@ -385,11 +389,13 @@ export default function TierMaker() {
   const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!draggingId || !plotRef.current) return;
 
+    // アイコンをドラッグしている時はスクロールを防止
+    if (e.cancelable) e.preventDefault();
+
     const rect = plotRef.current.getBoundingClientRect();
     let clientX, clientY;
 
     if ("touches" in e) {
-      if (e.cancelable) e.preventDefault();
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
     } else {
@@ -889,7 +895,7 @@ export default function TierMaker() {
 
             <div
               ref={plotRef}
-              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg touch-none select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
+              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
               onMouseMove={handleMouseMove}
               onTouchMove={handleMouseMove}
               onMouseUp={handleDragEnd}
@@ -934,8 +940,8 @@ export default function TierMaker() {
                   key={icon.id}
                   className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group z-10"
                   style={{ left: `${icon.x}%`, top: `${icon.y}%` }}
-                  onMouseDown={(e) => { e.stopPropagation(); handleDragStart(icon.id); }}
-                  onTouchStart={(e) => { e.stopPropagation(); handleDragStart(icon.id); }}
+                  onMouseDown={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
+                  onTouchStart={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onClick={(e) => { e.stopPropagation(); setSelectedIconId(icon.id); }}
                 >
                   <div className="relative">

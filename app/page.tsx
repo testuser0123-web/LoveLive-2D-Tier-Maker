@@ -379,8 +379,8 @@ export default function TierMaker() {
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
     if ("touches" in e) {
-      // Don't preventDefault here to allow potential clicks, 
-      // but the move will be handled
+      // アイコンを掴んだ瞬間にスクロールを阻止
+      if (e.cancelable) e.preventDefault();
     }
     setDraggingId(id);
     setSelectedIconId(id);
@@ -938,7 +938,7 @@ export default function TierMaker() {
               {placedIcons.map((icon) => (
                 <div
                   key={icon.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group z-10"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group z-10 touch-none"
                   style={{ left: `${icon.x}%`, top: `${icon.y}%` }}
                   onMouseDown={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onTouchStart={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}

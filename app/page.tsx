@@ -337,7 +337,7 @@ export default function TierMaker() {
       <div className="max-w-6xl mx-auto space-y-6 md:y-8">
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 pb-4 md:pb-6">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-blue-600 flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ll-pink flex items-center gap-2">
               2D Tierメーカー
             </h1>
           </div>
@@ -351,14 +351,14 @@ export default function TierMaker() {
             </button>
             <button
               onClick={() => currentProjectId && openRenameModal(currentProjectId)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors shadow-sm text-sm"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-ll-pink/10 text-ll-pink border border-ll-pink/20 rounded-lg hover:bg-ll-pink/20 transition-colors shadow-sm text-sm"
             >
               <Edit3 size={16} />
               タイトルを変更
             </button>
             <button
               onClick={() => setShowExportModal(true)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md text-sm"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-ll-pink text-white rounded-lg hover:brightness-110 transition-colors shadow-md text-sm"
             >
               <Download size={16} />
               画像で保存
@@ -386,8 +386,8 @@ export default function TierMaker() {
                     }}
                     className={`group p-4 mb-2 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
                       currentProjectId === project.id 
-                        ? "bg-blue-50 border-blue-200 ring-2 ring-blue-100" 
-                        : "bg-white border-gray-100 hover:border-blue-200"
+                        ? "bg-ll-pink/5 border-ll-pink/20 ring-2 ring-ll-pink/10" 
+                        : "bg-white border-gray-100 hover:border-ll-pink/20"
                     }`}
                   >
                     <div>
@@ -397,7 +397,7 @@ export default function TierMaker() {
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => openRenameModal(project.id, e)}
-                        className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-md"
+                        className="p-1.5 text-gray-400 hover:text-ll-pink hover:bg-ll-pink/5 rounded-md"
                       >
                         <RefreshCcw size={14} />
                       </button>
@@ -414,7 +414,7 @@ export default function TierMaker() {
               <div className="p-4 bg-gray-50">
                 <button 
                   onClick={openCreateModal}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-ll-pink text-white rounded-xl font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus size={20} />
                   新しいプロットを作成
@@ -440,7 +440,7 @@ export default function TierMaker() {
                     value={modalInputName}
                     onChange={(e) => setModalInputName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-ll-pink outline-none transition-all"
                     placeholder="名前を入力してください"
                   />
                 </div>
@@ -453,7 +453,7 @@ export default function TierMaker() {
                   </button>
                   <button
                     onClick={handleModalSubmit}
-                    className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all"
+                    className="flex-1 py-3 bg-ll-pink text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all"
                   >
                     {modalMode === "create" ? "作成" : "保存"}
                   </button>
@@ -477,7 +477,7 @@ export default function TierMaker() {
                   <span className="font-medium">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? 'bg-ll-pink' : 'bg-gray-300'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${includeTitleInExport ? 'left-7' : 'left-1'}`} />
                   </button>
@@ -492,7 +492,7 @@ export default function TierMaker() {
                   </button>
                   <button
                     onClick={exportImage}
-                    className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-ll-pink text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
                   >
                     <Download size={18} />
                     保存
@@ -507,7 +507,7 @@ export default function TierMaker() {
           <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
-                <Plus size={18} className="text-blue-500" />
+                <Plus size={18} className="text-ll-pink" />
                 アイコンを追加
               </h2>
               
@@ -519,7 +519,7 @@ export default function TierMaker() {
                       onClick={() => setActiveFolder(folder)}
                       className={`px-3 py-1 text-xs rounded-full transition-all ${
                         activeFolder === folder
-                          ? "bg-blue-100 text-blue-600 font-bold"
+                          ? "bg-ll-pink/10 text-ll-pink font-bold"
                           : "text-gray-500 hover:bg-gray-100"
                       }`}
                     >
@@ -540,7 +540,7 @@ export default function TierMaker() {
                       className={`relative aspect-square border rounded-md overflow-hidden transition-all active:scale-95 ${
                         isPlaced
                           ? "opacity-40 grayscale border-gray-100 cursor-not-allowed"
-                          : "border-gray-100 hover:border-blue-400 hover:ring-2 hover:ring-blue-100"
+                          : "border-gray-100 hover:border-ll-pink/40 hover:ring-2 hover:ring-ll-pink/10"
                       }`}
                     >
                       <img
@@ -573,7 +573,7 @@ export default function TierMaker() {
                       </label>
                       <button
                         onClick={() => toggleVisibility(key)}
-                        className={`p-1 rounded-md transition-colors ${visibleLabels[key] ? "text-blue-500 hover:bg-blue-50" : "text-gray-300 hover:bg-gray-50"}`}
+                        className={`p-1 rounded-md transition-colors ${visibleLabels[key] ? "text-ll-pink hover:bg-ll-pink/5" : "text-gray-300 hover:bg-gray-50"}`}
                         title={visibleLabels[key] ? "表示中" : "非表示"}
                       >
                         {visibleLabels[key] ? (
@@ -588,7 +588,7 @@ export default function TierMaker() {
                       value={axisLabels[key]}
                       onChange={(e) => updateLabel(key, e.target.value)}
                       disabled={!visibleLabels[key]}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm ${
+                      className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-ll-pink outline-none transition-all text-sm ${
                         visibleLabels[key]
                           ? "bg-gray-50 border-gray-200"
                           : "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
@@ -612,7 +612,7 @@ export default function TierMaker() {
             >
               {/* Plot Title */}
               <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
-                <h2 className="text-lg md:text-2xl font-black text-gray-300 uppercase italic tracking-tighter opacity-50">
+                <h2 className="text-lg md:text-2xl font-black text-ll-pink/20 uppercase italic tracking-tighter">
                   {currentProject?.name}
                 </h2>
               </div>
@@ -657,8 +657,8 @@ export default function TierMaker() {
                       alt="placed"
                       className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all ${
                         draggingId === icon.id
-                          ? "scale-110 border-blue-500 ring-4 ring-blue-100 z-50"
-                          : "border-white group-hover:border-blue-200"
+                          ? "scale-110 border-ll-pink ring-4 ring-ll-pink/10 z-50"
+                          : "border-white group-hover:border-ll-pink/20"
                       }`}
                       draggable={false}
                     />
@@ -677,7 +677,7 @@ export default function TierMaker() {
               ))}
             </div>
 
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-blue-700 text-xs md:text-sm flex items-start gap-2">
+            <div className="mt-4 p-3 bg-ll-pink/5 rounded-lg border border-ll-pink/10 text-ll-pink text-xs md:text-sm flex items-start gap-2">
               <span className="text-base">💡</span>
               <p>
                 「プロジェクト一覧」から保存されたプロットを切り替えたり、新規作成ができます。

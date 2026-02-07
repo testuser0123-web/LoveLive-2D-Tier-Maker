@@ -92,6 +92,9 @@ export default function TierMaker() {
   });
   const [coordInputs, setCoordInputs] = useState<{x: string, y: string}>({ x: "0", y: "0" });
 
+  // Ref to track previous ranges for coordinate re-mapping
+  const prevAxisRangesRef = useRef<AxisRanges>(axisRanges);
+
   // Load from API and LocalStorage
   useEffect(() => {
     const fetchData = async () => {
@@ -122,6 +125,8 @@ export default function TierMaker() {
 
       if (loadedProjects.length > 0) {
         const projectToLoad = loadedProjects.find(p => p.id === lastProjectId) || loadedProjects[0];
+        const ranges = projectToLoad.axisRanges || { minX: -10, maxX: 10, minY: -10, maxY: 10 };
+        prevAxisRangesRef.current = ranges;
         loadProject(projectToLoad);
       } else {
         const initialProject: Project = {
@@ -149,6 +154,7 @@ export default function TierMaker() {
           updatedAt: Date.now()
         };
         setProjects([initialProject]);
+        prevAxisRangesRef.current = initialProject.axisRanges;
         loadProject(initialProject);
       }
       
@@ -158,8 +164,32 @@ export default function TierMaker() {
     fetchData();
   }, []);
 
-  // Update local range inputs when axisRanges changes
+  // Effect to re-map icon coordinates when axis ranges change
   useEffect(() => {
+    const prev = prevAxisRangesRef.current;
+    
+    // Check if any range value actually changed
+    if (prev.minX !== axisRanges.minX || 
+        prev.maxX !== axisRanges.maxX || 
+        prev.minY !== axisRanges.minY || 
+        prev.maxY !== axisRanges.maxY) {
+      
+      setPlacedIcons(prevIcons => prevIcons.map(icon => {
+        // 1. Get the absolute numeric value based on OLD ranges
+        const valX = percentToVal(icon.x, prev.minX, prev.maxX, false);
+        const valY = percentToVal(icon.y, prev.minY, prev.maxY, true);
+        
+        // 2. Re-calculate percentage based on NEW ranges, clamped to [0, 100]
+        const newX = Math.max(0, Math.min(100, valToPercent(valX, axisRanges.minX, axisRanges.maxX, false)));
+        const newY = Math.max(0, Math.min(100, valToPercent(valY, axisRanges.minY, axisRanges.maxY, true)));
+        
+        return { ...icon, x: newX, y: newY };
+      }));
+      
+      // Update the ref for the next change
+      prevAxisRangesRef.current = axisRanges;
+    }
+
     setRangeInputs({
       minX: axisRanges.minX.toString(),
       maxX: axisRanges.maxX.toString(),
@@ -179,7 +209,7 @@ export default function TierMaker() {
     } else {
       setCoordInputs({ x: "-", y: "-" });
     }
-  }, [selectedIconId, draggingId]);
+  }, [selectedIconId, draggingId, axisRanges]);
 
   // Auto-save current project
   useEffect(() => {
@@ -266,16 +296,13 @@ export default function TierMaker() {
   };
 
   const loadProject = (project: Project) => {
+    const newRanges = project.axisRanges || { minX: -10, maxX: 10, minY: -10, maxY: 10 };
+    prevAxisRangesRef.current = newRanges;
     setCurrentProjectId(project.id);
     setPlacedIcons(project.placedIcons);
     setAxisLabels(project.axisLabels);
     setVisibleLabels(project.visibleLabels);
-    setAxisRanges(project.axisRanges || {
-      minX: -10,
-      maxX: 10,
-      minY: -10,
-      maxY: 10,
-    });
+    setAxisRanges(newRanges);
     localStorage.setItem("lovelive-current-project-id", project.id);
     setSelectedIconId(null);
   };
@@ -601,8 +628,8 @@ export default function TierMaker() {
                   <span className="font-medium">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? '' : 'bg-gray-300'}`}
-                    style={includeTitleInExport ? { backgroundColor: LL_PINK } : {}}
+                    className="w-12 h-6 rounded-full transition-colors relative"
+                    style={{ backgroundColor: includeTitleInExport ? LL_PINK : '#d1d5db' }}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${includeTitleInExport ? 'left-7' : 'left-1'}`} />
                   </button>
@@ -822,7 +849,7 @@ export default function TierMaker() {
               onClick={() => setSelectedIconId(null)}
             >
               <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
-                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter" style={{ color: `${LL_PINK}33` }}>
+                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-gray-200">
                   {currentProject?.name}
                 </h2>
               </div>
@@ -896,7 +923,7 @@ export default function TierMaker() {
                  style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
               <span className="text-base">💡</span>
               <p>
-                アイコンをタップすると座標を数値入力できます。軸の範囲設定からスケールも変更可能です。
+                軸の数値範囲を変更しても、各アイコンの数値上の位置は維持されます（範囲外になる場合は端に移動します）。
               </p>
             </div>
           </div>

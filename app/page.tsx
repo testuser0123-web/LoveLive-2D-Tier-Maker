@@ -803,22 +803,22 @@ export default function TierMaker() {
               {/* Axis Labels on Plot */}
               {visibleLabels.top && (
                 <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.top} ({axisRanges.maxY})
+                  {axisLabels.top}
                 </div>
               )}
               {visibleLabels.bottom && (
                 <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.bottom} ({axisRanges.minY})
+                  {axisLabels.bottom}
                 </div>
               )}
               {visibleLabels.left && (
                 <div className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.left} ({axisRanges.minX})
+                  {axisLabels.left}
                 </div>
               )}
               {visibleLabels.right && (
                 <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
-                  {axisLabels.right} ({axisRanges.maxX})
+                  {axisLabels.right}
                 </div>
               )}
 

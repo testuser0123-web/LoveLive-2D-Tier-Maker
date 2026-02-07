@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
-import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target } from "lucide-react";
+import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed } from "lucide-react";
 
 type PlacedIcon = {
   id: string;
@@ -176,6 +176,8 @@ export default function TierMaker() {
         x: percentToVal(selectedIcon.x, axisRanges.minX, axisRanges.maxX, false).toFixed(1),
         y: percentToVal(selectedIcon.y, axisRanges.minY, axisRanges.maxY, true).toFixed(1),
       });
+    } else {
+      setCoordInputs({ x: "-", y: "-" });
     }
   }, [selectedIconId, draggingId]);
 
@@ -484,7 +486,7 @@ export default function TierMaker() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
               <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="font-bold text-lg">保存されたプロジェクト</h3>
+                <h3 className="font-bold text-lg text-gray-900">保存されたプロジェクト</h3>
                 <button onClick={() => setShowProjectList(false)} className="text-gray-400 hover:text-gray-600 p-1">
                   <X size={24} />
                 </button>
@@ -547,7 +549,7 @@ export default function TierMaker() {
         {/* Name Input Modal */}
         {showNameModal && (
           <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200 text-gray-900">
               <div className="p-6 space-y-4">
                 <h3 className="font-bold text-xl text-center">
                   {modalMode === "create" ? "新しいプロット" : "プロジェクト名を変更"}
@@ -560,7 +562,7 @@ export default function TierMaker() {
                     value={modalInputName}
                     onChange={(e) => setModalInputName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all text-gray-900"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all"
                     style={{ '--tw-ring-color': LL_PINK } as any}
                     placeholder="名前を入力してください"
                   />
@@ -588,7 +590,7 @@ export default function TierMaker() {
         {/* Export Modal */}
         {showExportModal && (
           <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200 text-gray-900">
               <div className="p-6 space-y-6">
                 <div className="text-center space-y-2">
                   <h3 className="font-bold text-xl">画像を保存</h3>
@@ -596,7 +598,7 @@ export default function TierMaker() {
                 </div>
                 
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium text-gray-900">題名を含める</span>
+                  <span className="font-medium">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
                     className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? '' : 'bg-gray-300'}`}
@@ -628,8 +630,7 @@ export default function TierMaker() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
+          <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1 text-gray-900">
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
                 <Plus size={18} style={{ color: LL_PINK }} />
@@ -655,7 +656,7 @@ export default function TierMaker() {
                 </div>
               )}
 
-              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1 text-gray-900">
+              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1">
                 {activeFolder && icons[activeFolder]?.map((src, index) => {
                   const isPlaced = placedIcons.some((icon) => icon.src === src);
                   return (
@@ -681,7 +682,7 @@ export default function TierMaker() {
               <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
                 軸のラベル設定
               </h2>
-              <div className="grid grid-cols-1 gap-4 text-gray-900">
+              <div className="grid grid-cols-1 gap-4">
                 {(["top", "bottom", "left", "right"] as const).map((key) => (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center">
@@ -715,7 +716,7 @@ export default function TierMaker() {
                 <Settings2 size={18} />
                 数値の範囲設定
               </h2>
-              <div className="grid grid-cols-2 gap-4 text-gray-900">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最小値</label>
                   <input 
@@ -756,51 +757,59 @@ export default function TierMaker() {
             </div>
           </div>
 
-          {/* Main Area */}
           <div className="lg:col-span-3 order-1 lg:order-2 space-y-4">
-            {/* Selected Icon Settings (Now above the plot) */}
-            {selectedIcon && (
-              <div className="bg-white p-4 rounded-xl shadow-md border-2 animate-in slide-in-from-top duration-200" style={{ borderColor: LL_PINK }}>
-                <div className="flex flex-col md:flex-row items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Target size={18} style={{ color: LL_PINK }} />
-                    <span className="font-bold text-sm" style={{ color: LL_PINK }}>編集中のアイコン</span>
-                  </div>
-                  <div className="flex items-center gap-4 flex-1 w-full">
-                    <img src={selectedIcon.src} className="w-10 h-10 rounded-full border-2 border-gray-100 shadow-sm" />
-                    <div className="flex-1 grid grid-cols-2 gap-4 text-gray-900">
-                      <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">X座標</label>
-                        <input 
-                          type="text" 
-                          value={coordInputs.x}
-                          onChange={(e) => handleCoordInputChange('x', e.target.value)}
-                          className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2"
-                          style={{ '--tw-ring-color': LL_PINK } as any}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">Y座標</label>
-                        <input 
-                          type="text" 
-                          value={coordInputs.y}
-                          onChange={(e) => handleCoordInputChange('y', e.target.value)}
-                          className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2"
-                          style={{ '--tw-ring-color': LL_PINK } as any}
-                        />
-                      </div>
+            <div className={`bg-white p-4 rounded-xl shadow-md border-2 transition-all duration-300 ${selectedIcon ? 'border-opacity-100' : 'border-dashed border-opacity-20'}`} 
+                 style={{ borderColor: selectedIcon ? LL_PINK : '#cbd5e1' }}>
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Target size={18} style={{ color: selectedIcon ? LL_PINK : '#94a3b8' }} />
+                  <span className="font-bold text-sm" style={{ color: selectedIcon ? LL_PINK : '#94a3b8' }}>
+                    {selectedIcon ? '編集中のアイコン' : 'アイコンを選択してください'}
+                  </span>
+                </div>
+                <div className={`flex items-center gap-4 flex-1 w-full transition-opacity duration-300 ${selectedIcon ? 'opacity-100' : 'opacity-40'}`}>
+                  {selectedIcon ? (
+                    <img src={selectedIcon.src} className="w-10 h-10 rounded-full border-2 border-gray-100 shadow-sm animate-in zoom-in duration-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-300">
+                      <CircleDashed size={20} />
                     </div>
-                    <button 
-                      onClick={() => removeIcon(selectedIcon.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="このアイコンを削除"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                  )}
+                  <div className="flex-1 grid grid-cols-2 gap-4 text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">X座標</label>
+                      <input 
+                        type="text" 
+                        value={coordInputs.x}
+                        onChange={(e) => handleCoordInputChange('x', e.target.value)}
+                        disabled={!selectedIcon}
+                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed"
+                        style={{ '--tw-ring-color': LL_PINK } as any}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">Y座標</label>
+                      <input 
+                        type="text" 
+                        value={coordInputs.y}
+                        onChange={(e) => handleCoordInputChange('y', e.target.value)}
+                        disabled={!selectedIcon}
+                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed"
+                        style={{ '--tw-ring-color': LL_PINK } as any}
+                      />
+                    </div>
                   </div>
+                  <button 
+                    onClick={() => selectedIcon && removeIcon(selectedIcon.id)}
+                    disabled={!selectedIcon}
+                    className={`p-2 rounded-lg transition-colors ${selectedIcon ? 'text-red-500 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'}`}
+                    title="このアイコンを削除"
+                  >
+                    <Trash2 size={20} />
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
 
             <div
               ref={plotRef}

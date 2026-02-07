@@ -462,15 +462,27 @@ export default function TierMaker() {
     if (plotRef.current) {
       try {
         setIsExporting(true);
-        // Reactの再描画とブラウザのレンダリングを待つために待機時間を増加
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Reactの再描画とブラウザのレンダリングを待つために待機時間を十分に確保
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const width = plotRef.current.offsetWidth;
+        const height = plotRef.current.offsetHeight;
 
         const dataUrl = await toPng(plotRef.current, {
           backgroundColor: "#fff",
           cacheBust: true,
-          pixelRatio: 2, // 4は高負荷すぎるため2に調整
+          pixelRatio: 2,
+          width: width,
+          height: height,
           fontEmbedCSS: "",
           skipFonts: true,
+          style: {
+            transform: 'scale(1)',
+            boxShadow: 'none',
+            border: 'none',
+            borderRadius: '0',
+            fontFamily: "Arial, sans-serif",
+          },
           filter: (node) => {
             if (node instanceof HTMLElement && node.classList.contains("delete-button-ignore")) {
               return false;
@@ -479,9 +491,6 @@ export default function TierMaker() {
               return false;
             }
             return true;
-          },
-          style: {
-            fontFamily: "Arial, sans-serif",
           },
         });
         const link = document.createElement("a");
@@ -897,23 +906,24 @@ export default function TierMaker() {
 
             <div
               ref={plotRef}
-              className="p-4 bg-white border border-gray-200 rounded-xl shadow-lg"
+              className="bg-white"
             >
-              <div className="mb-4 plot-title-ignore">
-                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-gray-400">
-                  {currentProject?.name}
-                </h2>
-              </div>
+              <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-lg">
+                <div className="mb-4 plot-title-ignore">
+                  <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-gray-400">
+                    {currentProject?.name}
+                  </h2>
+                </div>
 
-              <div
-                className={`relative aspect-square w-full bg-white border border-gray-200 rounded-lg overflow-visible select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
-                onMouseMove={handleMouseMove}
-                onTouchMove={handleMouseMove}
-                onMouseUp={handleDragEnd}
-                onTouchEnd={handleDragEnd}
-                onMouseLeave={handleDragEnd}
-                onClick={() => setSelectedIconId(null)}
-              >
+                <div
+                  className={`relative aspect-square w-full bg-white border border-gray-200 rounded-lg overflow-visible select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
+                  onMouseMove={handleMouseMove}
+                  onTouchMove={handleMouseMove}
+                  onMouseUp={handleDragEnd}
+                  onTouchEnd={handleDragEnd}
+                  onMouseLeave={handleDragEnd}
+                  onClick={() => setSelectedIconId(null)}
+                >
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-full h-[2px] bg-gray-200" />
                   <div className="h-full w-[2px] bg-gray-200 absolute" />
@@ -983,6 +993,7 @@ export default function TierMaker() {
                   </div>
                 </div>
               ))}
+              </div>
               </div>
             </div>
           </div>

@@ -488,6 +488,13 @@ export default function TierMaker() {
   const currentProject = projects.find(p => p.id === currentProjectId);
   const selectedIcon = placedIcons.find(icon => icon.id === selectedIconId);
 
+  // Check if axis range inputs differ from current active ranges
+  const isRangeChanged = 
+    rangeInputs.minX !== axisRanges.minX.toString() ||
+    rangeInputs.maxX !== axisRanges.maxX.toString() ||
+    rangeInputs.minY !== axisRanges.minY.toString() ||
+    rangeInputs.maxY !== axisRanges.maxY.toString();
+
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-8 text-gray-900">
       <div className="max-w-6xl mx-auto space-y-6 md:y-8">
@@ -699,7 +706,7 @@ export default function TierMaker() {
                 </div>
               )}
 
-              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1 text-gray-900">
                 {activeFolder && icons[activeFolder]?.map((src, index) => {
                   const isPlaced = placedIcons.some((icon) => icon.src === src);
                   return (
@@ -762,11 +769,14 @@ export default function TierMaker() {
                 </h2>
                 <button
                   onClick={applyAxisRanges}
-                  className="px-3 py-1 text-xs font-bold text-white rounded-full transition-all flex items-center gap-1 shadow-sm hover:brightness-110"
-                  style={{ backgroundColor: LL_PINK }}
+                  disabled={!isRangeChanged}
+                  className={`px-3 py-1 text-xs font-bold text-white rounded-full transition-all flex items-center gap-1 shadow-sm ${
+                    isRangeChanged ? "hover:brightness-110" : "opacity-30 cursor-not-allowed grayscale"
+                  }`}
+                  style={{ backgroundColor: isRangeChanged ? LL_PINK : '#94a3b8' }}
                 >
                   <Check size={14} />
-                  反映
+                  反映する
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -807,7 +817,11 @@ export default function TierMaker() {
                   />
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400 leading-tight">※数値を入力した後、「反映」ボタンを押すとプロットに適用されます。</p>
+              {isRangeChanged && (
+                <p className="text-[10px] font-bold animate-pulse" style={{ color: LL_PINK }}>
+                  ※変更があります。「反映する」を押してください。
+                </p>
+              )}
             </div>
           </div>
 
@@ -887,22 +901,22 @@ export default function TierMaker() {
               </div>
 
               {visibleLabels.top && (
-                <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
+                <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap text-gray-900">
                   {axisLabels.top}
                 </div>
               )}
               {visibleLabels.bottom && (
-                <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
+                <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap text-gray-900">
                   {axisLabels.bottom}
                 </div>
               )}
               {visibleLabels.left && (
-                <div className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
+                <div className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap text-gray-900">
                   {axisLabels.left}
                 </div>
               )}
               {visibleLabels.right && (
-                <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap">
+                <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap text-gray-900">
                   {axisLabels.right}
                 </div>
               )}
@@ -950,7 +964,7 @@ export default function TierMaker() {
                  style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
               <span className="text-base">💡</span>
               <p>
-                「数値の範囲設定」を変更した後、反映ボタンを押すと座標が再計算されます。
+                「数値の範囲設定」を変更した後、「反映する」ボタンを押すと全ての座標が再計算されます。
               </p>
             </div>
           </div>

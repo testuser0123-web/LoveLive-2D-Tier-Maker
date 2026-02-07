@@ -392,7 +392,8 @@ export default function TierMaker() {
     // アイコンをドラッグしている時はスクロールを防止
     if (e.cancelable) e.preventDefault();
 
-    const rect = plotRef.current.getBoundingClientRect();
+    // イベントが発生している要素（プロット図エリア）の範囲を取得
+    const rect = e.currentTarget.getBoundingClientRect();
     let clientX, clientY;
 
     if ("touches" in e) {
@@ -896,24 +897,27 @@ export default function TierMaker() {
 
             <div
               ref={plotRef}
-              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl shadow-lg select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
-              onMouseMove={handleMouseMove}
-              onTouchMove={handleMouseMove}
-              onMouseUp={handleDragEnd}
-              onTouchEnd={handleDragEnd}
-              onMouseLeave={handleDragEnd}
-              onClick={() => setSelectedIconId(null)}
+              className="p-4 bg-white border border-gray-200 rounded-xl shadow-lg"
             >
-              <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
-                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-gray-200">
+              <div className="mb-4 plot-title-ignore">
+                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter text-gray-400">
                   {currentProject?.name}
                 </h2>
               </div>
 
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-full h-[2px] bg-gray-200" />
-                <div className="h-full w-[2px] bg-gray-200 absolute" />
-              </div>
+              <div
+                className={`relative aspect-square w-full bg-white border border-gray-200 rounded-lg overflow-visible select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
+                onMouseMove={handleMouseMove}
+                onTouchMove={handleMouseMove}
+                onMouseUp={handleDragEnd}
+                onTouchEnd={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+                onClick={() => setSelectedIconId(null)}
+              >
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-full h-[2px] bg-gray-200" />
+                  <div className="h-full w-[2px] bg-gray-200 absolute" />
+                </div>
 
               {visibleLabels.top && (
                 <div className="absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none shadow-sm border border-gray-100 whitespace-nowrap text-gray-900">
@@ -939,17 +943,19 @@ export default function TierMaker() {
               {placedIcons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group touch-none whitespace-nowrap"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group touch-none whitespace-nowrap flex-shrink-0"
                   style={{ 
                     left: `${icon.x}%`, 
                     top: `${icon.y}%`,
-                    zIndex: selectedIconId === icon.id ? 50 : 10 + index 
+                    zIndex: selectedIconId === icon.id ? 50 : 10 + index,
+                    width: 'auto',
+                    height: 'auto'
                   }}
                   onMouseDown={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onTouchStart={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onClick={(e) => { e.stopPropagation(); setSelectedIconId(icon.id); }}
                 >
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <img
                       src={icon.src}
                       alt="placed"
@@ -977,6 +983,8 @@ export default function TierMaker() {
                   </div>
                 </div>
               ))}
+              </div>
+            </div>
             </div>
           </div>
         </div>

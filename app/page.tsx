@@ -930,28 +930,28 @@ export default function TierMaker() {
                 </div>
 
               {visibleLabels.top && (
-                <div className={`absolute top-3 md:top-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute top-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.top}
                 </div>
               )}
               {visibleLabels.bottom && (
-                <div className={`absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute bottom-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.bottom}
                 </div>
               )}
               {visibleLabels.left && (
-                <div className={`absolute -left-[6px] md:-left-[9px] top-1/2 -translate-y-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute left-5 top-1/2 -translate-y-1/2 -translate-x-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.left}
                 </div>
               )}
               {visibleLabels.right && (
-                <div className={`absolute -right-[6px] md:-right-[9px] top-1/2 -translate-y-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
+                <div className={`absolute right-5 top-1/2 -translate-y-1/2 translate-x-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
                   isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
                 }`}>
                   {axisLabels.right}

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
-import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed } from "lucide-react";
+import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed, Check } from "lucide-react";
 
 type PlacedIcon = {
   id: string;
@@ -86,7 +86,7 @@ export default function TierMaker() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [includeTitleInExport, setIncludeTitleInExport] = useState(true);
 
-  // Local input states to allow clearing/typing
+  // Local input states to allow clearing/typing without immediate side effects
   const [rangeInputs, setRangeInputs] = useState<Record<string, string>>({
     minX: "-10", maxX: "10", minY: "-10", maxY: "10"
   });
@@ -164,29 +164,25 @@ export default function TierMaker() {
     fetchData();
   }, []);
 
-  // Effect to re-map icon coordinates when axis ranges change
+  // Effect to re-map icon coordinates ONLY when axisRanges (numbers) change
   useEffect(() => {
     const prev = prevAxisRangesRef.current;
     
-    // Check if any range value actually changed
     if (prev.minX !== axisRanges.minX || 
         prev.maxX !== axisRanges.maxX || 
         prev.minY !== axisRanges.minY || 
         prev.maxY !== axisRanges.maxY) {
       
       setPlacedIcons(prevIcons => prevIcons.map(icon => {
-        // 1. Get the absolute numeric value based on OLD ranges
         const valX = percentToVal(icon.x, prev.minX, prev.maxX, false);
         const valY = percentToVal(icon.y, prev.minY, prev.maxY, true);
         
-        // 2. Re-calculate percentage based on NEW ranges, clamped to [0, 100]
         const newX = Math.max(0, Math.min(100, valToPercent(valX, axisRanges.minX, axisRanges.maxX, false)));
         const newY = Math.max(0, Math.min(100, valToPercent(valY, axisRanges.minY, axisRanges.maxY, true)));
         
         return { ...icon, x: newX, y: newY };
       }));
       
-      // Update the ref for the next change
       prevAxisRangesRef.current = axisRanges;
     }
 
@@ -353,10 +349,30 @@ export default function TierMaker() {
 
   const handleRangeInputChange = (key: keyof AxisRanges, value: string) => {
     setRangeInputs(prev => ({ ...prev, [key]: value }));
-    const num = parseFloat(value);
-    if (!isNaN(num)) {
-      setAxisRanges(prev => ({ ...prev, [key]: num }));
+  };
+
+  const applyAxisRanges = () => {
+    const newMinX = parseFloat(rangeInputs.minX);
+    const newMaxX = parseFloat(rangeInputs.maxX);
+    const newMinY = parseFloat(rangeInputs.minY);
+    const newMaxY = parseFloat(rangeInputs.maxY);
+
+    if (isNaN(newMinX) || isNaN(newMaxX) || isNaN(newMinY) || isNaN(newMaxY)) {
+      alert("有効な数値を入力してください。");
+      return;
     }
+
+    if (newMinX >= newMaxX || newMinY >= newMaxY) {
+      alert("最小値は最大値より小さい必要があります。");
+      return;
+    }
+
+    setAxisRanges({
+      minX: newMinX,
+      maxX: newMaxX,
+      minY: newMinY,
+      maxY: newMaxY,
+    });
   };
 
   const handleDragStart = (id: string) => {
@@ -625,7 +641,7 @@ export default function TierMaker() {
                 </div>
                 
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <span className="font-medium">題名を含める</span>
+                  <span className="font-medium text-gray-900">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
                     className="w-12 h-6 rounded-full transition-colors relative"
@@ -656,8 +672,8 @@ export default function TierMaker() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-          <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1 text-gray-900">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8 text-gray-900">
+          <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
                 <Plus size={18} style={{ color: LL_PINK }} />
@@ -713,7 +729,7 @@ export default function TierMaker() {
                 {(["top", "bottom", "left", "right"] as const).map((key) => (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase text-gray-500">
                         {key === "top" ? "上 (Y軸+)" : key === "bottom" ? "下 (Y軸-)" : key === "left" ? "左 (X軸-)" : "右 (X軸+)"}
                       </label>
                       <button
@@ -739,10 +755,20 @@ export default function TierMaker() {
             </div>
 
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
-              <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
-                <Settings2 size={18} />
-                数値の範囲設定
-              </h2>
+              <div className="flex justify-between items-center">
+                <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
+                  <Settings2 size={18} />
+                  数値の範囲設定
+                </h2>
+                <button
+                  onClick={applyAxisRanges}
+                  className="px-3 py-1 text-xs font-bold text-white rounded-full transition-all flex items-center gap-1 shadow-sm hover:brightness-110"
+                  style={{ backgroundColor: LL_PINK }}
+                >
+                  <Check size={14} />
+                  反映
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">X軸 最小値</label>
@@ -781,6 +807,7 @@ export default function TierMaker() {
                   />
                 </div>
               </div>
+              <p className="text-[10px] text-gray-400 leading-tight">※数値を入力した後、「反映」ボタンを押すとプロットに適用されます。</p>
             </div>
           </div>
 
@@ -802,7 +829,7 @@ export default function TierMaker() {
                       <CircleDashed size={20} />
                     </div>
                   )}
-                  <div className="flex-1 grid grid-cols-2 gap-4 text-gray-900">
+                  <div className="flex-1 grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <label className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">X座標</label>
                       <input 
@@ -810,7 +837,7 @@ export default function TierMaker() {
                         value={coordInputs.x}
                         onChange={(e) => handleCoordInputChange('x', e.target.value)}
                         disabled={!selectedIcon}
-                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed text-gray-900"
                         style={{ '--tw-ring-color': LL_PINK } as any}
                       />
                     </div>
@@ -821,7 +848,7 @@ export default function TierMaker() {
                         value={coordInputs.y}
                         onChange={(e) => handleCoordInputChange('y', e.target.value)}
                         disabled={!selectedIcon}
-                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed text-gray-900"
                         style={{ '--tw-ring-color': LL_PINK } as any}
                       />
                     </div>
@@ -923,7 +950,7 @@ export default function TierMaker() {
                  style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
               <span className="text-base">💡</span>
               <p>
-                軸の数値範囲を変更しても、各アイコンの数値上の位置は維持されます（範囲外になる場合は端に移動します）。
+                「数値の範囲設定」を変更した後、反映ボタンを押すと座標が再計算されます。
               </p>
             </div>
           </div>

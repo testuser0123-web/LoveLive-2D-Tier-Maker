@@ -580,7 +580,7 @@ export default function TierMaker() {
                       <div className="font-bold text-gray-800">{project.name}</div>
                       <div className="text-[10px] text-gray-400">最終更新: {new Date(project.updatedAt).toLocaleString()}</div>
                     </div>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => openRenameModal(project.id, e)}
                         className="p-1.5 text-gray-400 rounded-md hover:bg-gray-100"

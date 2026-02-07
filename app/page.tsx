@@ -896,7 +896,7 @@ export default function TierMaker() {
 
             <div
               ref={plotRef}
-              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
+              className={`relative aspect-square w-full bg-white border border-gray-200 rounded-xl shadow-lg select-none ${isExporting ? '[&_*]:transition-none' : ''}`}
               onMouseMove={handleMouseMove}
               onTouchMove={handleMouseMove}
               onMouseUp={handleDragEnd}
@@ -953,7 +953,7 @@ export default function TierMaker() {
                     <img
                       src={icon.src}
                       alt="placed"
-                      className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all ${
+                      className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all object-cover ${
                         !isExporting && selectedIconId === icon.id
                           ? "scale-110 ring-4 z-50"
                           : "border-white"

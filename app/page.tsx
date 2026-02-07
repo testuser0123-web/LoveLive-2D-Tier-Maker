@@ -985,7 +985,6 @@ export default function TierMaker() {
               ))}
               </div>
             </div>
-            </div>
           </div>
         </div>
       </div>

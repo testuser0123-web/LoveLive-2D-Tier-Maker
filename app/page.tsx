@@ -36,6 +36,8 @@ type Project = {
 
 type GroupedIcons = Record<string, string[]>;
 
+const LL_PINK = "#E4007F";
+
 export default function TierMaker() {
   const [icons, setIcons] = useState<GroupedIcons>({});
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
@@ -337,7 +339,7 @@ export default function TierMaker() {
       <div className="max-w-6xl mx-auto space-y-6 md:y-8">
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 pb-4 md:pb-6">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ll-pink flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2" style={{ color: LL_PINK }}>
               2D Tierメーカー
             </h1>
           </div>
@@ -351,14 +353,16 @@ export default function TierMaker() {
             </button>
             <button
               onClick={() => currentProjectId && openRenameModal(currentProjectId)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-ll-pink/10 text-ll-pink border border-ll-pink/20 rounded-lg hover:bg-ll-pink/20 transition-colors shadow-sm text-sm"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 border rounded-lg transition-colors shadow-sm text-sm"
+              style={{ backgroundColor: `${LL_PINK}1A`, color: LL_PINK, borderColor: `${LL_PINK}33` }}
             >
               <Edit3 size={16} />
               タイトルを変更
             </button>
             <button
               onClick={() => setShowExportModal(true)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-ll-pink text-white rounded-lg hover:brightness-110 transition-colors shadow-md text-sm"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-white rounded-lg hover:brightness-110 transition-colors shadow-md text-sm"
+              style={{ backgroundColor: LL_PINK }}
             >
               <Download size={16} />
               画像で保存
@@ -386,9 +390,14 @@ export default function TierMaker() {
                     }}
                     className={`group p-4 mb-2 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
                       currentProjectId === project.id 
-                        ? "bg-ll-pink/5 border-ll-pink/20 ring-2 ring-ll-pink/10" 
-                        : "bg-white border-gray-100 hover:border-ll-pink/20"
+                        ? "border-opacity-20 ring-4 ring-opacity-10" 
+                        : "bg-white border-gray-100"
                     }`}
+                    style={currentProjectId === project.id ? { 
+                      backgroundColor: `${LL_PINK}0D`, 
+                      borderColor: `${LL_PINK}33`,
+                      boxShadow: `0 0 0 4px ${LL_PINK}1A`
+                    } : {}}
                   >
                     <div>
                       <div className="font-bold text-gray-800">{project.name}</div>
@@ -397,7 +406,8 @@ export default function TierMaker() {
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => openRenameModal(project.id, e)}
-                        className="p-1.5 text-gray-400 hover:text-ll-pink hover:bg-ll-pink/5 rounded-md"
+                        className="p-1.5 text-gray-400 rounded-md hover:bg-gray-100"
+                        style={{ color: "inherit" }}
                       >
                         <RefreshCcw size={14} />
                       </button>
@@ -414,7 +424,8 @@ export default function TierMaker() {
               <div className="p-4 bg-gray-50">
                 <button 
                   onClick={openCreateModal}
-                  className="w-full py-3 bg-ll-pink text-white rounded-xl font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 text-white rounded-xl font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                  style={{ backgroundColor: LL_PINK }}
                 >
                   <Plus size={20} />
                   新しいプロットを作成
@@ -440,7 +451,8 @@ export default function TierMaker() {
                     value={modalInputName}
                     onChange={(e) => setModalInputName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-ll-pink outline-none transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all"
+                    style={{ focusRingColor: LL_PINK } as any}
                     placeholder="名前を入力してください"
                   />
                 </div>
@@ -453,7 +465,8 @@ export default function TierMaker() {
                   </button>
                   <button
                     onClick={handleModalSubmit}
-                    className="flex-1 py-3 bg-ll-pink text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all"
+                    className="flex-1 py-3 text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all"
+                    style={{ backgroundColor: LL_PINK }}
                   >
                     {modalMode === "create" ? "作成" : "保存"}
                   </button>
@@ -477,7 +490,8 @@ export default function TierMaker() {
                   <span className="font-medium">題名を含める</span>
                   <button 
                     onClick={() => setIncludeTitleInExport(!includeTitleInExport)}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? 'bg-ll-pink' : 'bg-gray-300'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${includeTitleInExport ? '' : 'bg-gray-300'}`}
+                    style={includeTitleInExport ? { backgroundColor: LL_PINK } : {}}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${includeTitleInExport ? 'left-7' : 'left-1'}`} />
                   </button>
@@ -492,7 +506,8 @@ export default function TierMaker() {
                   </button>
                   <button
                     onClick={exportImage}
-                    className="flex-1 py-3 bg-ll-pink text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3 text-white font-bold rounded-xl shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                    style={{ backgroundColor: LL_PINK }}
                   >
                     <Download size={18} />
                     保存
@@ -507,7 +522,7 @@ export default function TierMaker() {
           <div className="lg:col-span-1 space-y-4 md:space-y-6 order-2 lg:order-1">
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200">
               <h2 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
-                <Plus size={18} className="text-ll-pink" />
+                <Plus size={18} style={{ color: LL_PINK }} />
                 アイコンを追加
               </h2>
               
@@ -519,9 +534,10 @@ export default function TierMaker() {
                       onClick={() => setActiveFolder(folder)}
                       className={`px-3 py-1 text-xs rounded-full transition-all ${
                         activeFolder === folder
-                          ? "bg-ll-pink/10 text-ll-pink font-bold"
+                          ? "font-bold"
                           : "text-gray-500 hover:bg-gray-100"
                       }`}
+                      style={activeFolder === folder ? { backgroundColor: `${LL_PINK}1A`, color: LL_PINK } : {}}
                     >
                       {folder}
                     </button>
@@ -540,8 +556,11 @@ export default function TierMaker() {
                       className={`relative aspect-square border rounded-md overflow-hidden transition-all active:scale-95 ${
                         isPlaced
                           ? "opacity-40 grayscale border-gray-100 cursor-not-allowed"
-                          : "border-gray-100 hover:border-ll-pink/40 hover:ring-2 hover:ring-ll-pink/10"
+                          : "border-gray-100"
                       }`}
+                      style={!isPlaced ? { 
+                        borderColor: 'transparent',
+                      } : {}}
                     >
                       <img
                         src={src}
@@ -573,7 +592,8 @@ export default function TierMaker() {
                       </label>
                       <button
                         onClick={() => toggleVisibility(key)}
-                        className={`p-1 rounded-md transition-colors ${visibleLabels[key] ? "text-ll-pink hover:bg-ll-pink/5" : "text-gray-300 hover:bg-gray-50"}`}
+                        className={`p-1 rounded-md transition-colors ${visibleLabels[key] ? "" : "text-gray-300 hover:bg-gray-50"}`}
+                        style={visibleLabels[key] ? { color: LL_PINK, backgroundColor: `${LL_PINK}0D` } : {}}
                         title={visibleLabels[key] ? "表示中" : "非表示"}
                       >
                         {visibleLabels[key] ? (
@@ -588,11 +608,14 @@ export default function TierMaker() {
                       value={axisLabels[key]}
                       onChange={(e) => updateLabel(key, e.target.value)}
                       disabled={!visibleLabels[key]}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-ll-pink outline-none transition-all text-sm ${
+                      className={`w-full px-3 py-1.5 border rounded-lg outline-none transition-all text-sm ${
                         visibleLabels[key]
                           ? "bg-gray-50 border-gray-200"
                           : "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
                       }`}
+                      style={visibleLabels[key] ? { 
+                        // Using standard focus ring via CSS classes is better but we use inline for override
+                      } : {}}
                     />
                   </div>
                 ))}
@@ -612,7 +635,7 @@ export default function TierMaker() {
             >
               {/* Plot Title */}
               <div className="absolute top-2 left-4 z-20 pointer-events-none plot-title-ignore">
-                <h2 className="text-lg md:text-2xl font-black text-ll-pink/20 uppercase italic tracking-tighter">
+                <h2 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter" style={{ color: `${LL_PINK}33` }}>
                   {currentProject?.name}
                 </h2>
               </div>
@@ -657,9 +680,19 @@ export default function TierMaker() {
                       alt="placed"
                       className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 shadow-md transition-all ${
                         draggingId === icon.id
-                          ? "scale-110 border-ll-pink ring-4 ring-ll-pink/10 z-50"
-                          : "border-white group-hover:border-ll-pink/20"
+                          ? "scale-110 ring-4 z-50"
+                          : "border-white"
                       }`}
+                      style={draggingId === icon.id ? { 
+                        borderColor: LL_PINK,
+                        boxShadow: `0 0 0 4px ${LL_PINK}1A`
+                      } : {}}
+                      onMouseEnter={(e) => {
+                        if (draggingId !== icon.id) e.currentTarget.style.borderColor = `${LL_PINK}33`;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (draggingId !== icon.id) e.currentTarget.style.borderColor = 'white';
+                      }}
                       draggable={false}
                     />
                     <button
@@ -677,7 +710,8 @@ export default function TierMaker() {
               ))}
             </div>
 
-            <div className="mt-4 p-3 bg-ll-pink/5 rounded-lg border border-ll-pink/10 text-ll-pink text-xs md:text-sm flex items-start gap-2">
+            <div className="mt-4 p-3 rounded-lg border text-xs md:text-sm flex items-start gap-2"
+                 style={{ backgroundColor: `${LL_PINK}0D`, borderColor: `${LL_PINK}1A`, color: LL_PINK }}>
               <span className="text-base">💡</span>
               <p>
                 「プロジェクト一覧」から保存されたプロットを切り替えたり、新規作成ができます。

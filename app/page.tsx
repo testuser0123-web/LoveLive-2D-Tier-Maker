@@ -461,14 +461,15 @@ export default function TierMaker() {
     if (plotRef.current) {
       try {
         setIsExporting(true);
-        // Reactの再描画を待つために少し待機
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Reactの再描画とブラウザのレンダリングを待つために待機時間を増加
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const dataUrl = await toPng(plotRef.current, {
           backgroundColor: "#fff",
           cacheBust: true,
-          pixelRatio: 4,
+          pixelRatio: 2, // 4は高負荷すぎるため2に調整
           fontEmbedCSS: "",
+          skipFonts: true,
           filter: (node) => {
             if (node instanceof HTMLElement && node.classList.contains("delete-button-ignore")) {
               return false;
@@ -489,7 +490,7 @@ export default function TierMaker() {
         setShowExportModal(false);
       } catch (err) {
         console.error("Export failed", err);
-        alert("画像の出力に失敗しました。");
+        alert("画像の出力に失敗しました。デバイスのメモリが不足しているか、アイコンが多すぎる可能性があります。");
       } finally {
         setIsExporting(false);
       }
@@ -935,11 +936,15 @@ export default function TierMaker() {
                 </div>
               )}
 
-              {placedIcons.map((icon) => (
+              {placedIcons.map((icon, index) => (
                 <div
                   key={icon.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group z-10 touch-none"
-                  style={{ left: `${icon.x}%`, top: `${icon.y}%` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move group touch-none"
+                  style={{ 
+                    left: `${icon.x}%`, 
+                    top: `${icon.y}%`,
+                    zIndex: selectedIconId === icon.id ? 50 : 10 + index 
+                  }}
                   onMouseDown={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onTouchStart={(e) => { e.stopPropagation(); handleDragStart(e, icon.id); }}
                   onClick={(e) => { e.stopPropagation(); setSelectedIconId(icon.id); }}

@@ -462,15 +462,15 @@ export default function TierMaker() {
     if (plotRef.current) {
       try {
         setIsExporting(true);
-        // Reactの再描画とブラウザのレンダリングを待つために待機時間を十分に確保
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Ensure all styles are applied and images are ready
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const width = plotRef.current.offsetWidth;
         const height = plotRef.current.offsetHeight;
 
         const dataUrl = await toPng(plotRef.current, {
           backgroundColor: "#fff",
-          cacheBust: true,
+          cacheBust: false, // Disabled to use optimized caching and prevent redundant fetches
           pixelRatio: 2,
           width: width,
           height: height,

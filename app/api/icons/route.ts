@@ -18,7 +18,8 @@ export async function GET() {
           
           files.forEach((file) => {
             if (file.match(/\.(png|jpe?g|svg|webp)$/i)) {
-              const relativePath = `/avatars/${folder}/${file}`;
+              // Encode each segment to handle special characters like ' and Japanese names safely in URLs
+              const relativePath = `/avatars/${encodeURIComponent(folder)}/${encodeURIComponent(file)}`;
               iconsInFolder.push(relativePath);
             }
           });

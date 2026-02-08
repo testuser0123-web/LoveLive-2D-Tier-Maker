@@ -544,11 +544,11 @@ export default function TierMaker() {
     <div className="min-h-screen bg-gray-50 p-3 md:p-8 text-gray-900">
       {/* Export Loading Overlay */}
       {isExporting && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex flex-col items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
-            <Loader2 className="animate-spin" size={48} style={{ color: LL_PINK }} />
-            <div className="text-lg font-bold text-gray-800">画像を生成中...</div>
-            <p className="text-sm text-gray-500">これには数秒かかる場合があります</p>
+        <div className="fixed inset-0 bg-black/70 z-[9999] flex flex-col items-center justify-center backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 mx-4">
+            <Loader2 className="animate-spin w-12 h-12" style={{ color: LL_PINK }} />
+            <div className="text-lg font-bold text-gray-800 text-center">画像を生成中...</div>
+            <p className="text-sm text-gray-500 text-center">これには数秒かかる場合があります</p>
           </div>
         </div>
       )}

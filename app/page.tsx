@@ -462,8 +462,25 @@ export default function TierMaker() {
     if (plotRef.current) {
       try {
         setIsExporting(true);
-        // Ensure all styles are applied and images are ready
-        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Wait for all images to be fully loaded and decoded
+        const images = plotRef.current.querySelectorAll("img");
+        const imagePromises = Array.from(images).map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        });
+        
+        // Also use the modern decode() method for extra reliability
+        const decodePromises = Array.from(images).map((img) => {
+          return img.decode().catch(() => {});
+        });
+
+        await Promise.all([...imagePromises, ...decodePromises]);
+        // Small buffer for browser rendering cycle
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const width = plotRef.current.offsetWidth;
         const height = plotRef.current.offsetHeight;

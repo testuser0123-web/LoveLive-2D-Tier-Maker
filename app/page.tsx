@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
-import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed, Check } from "lucide-react";
+import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed, Check, Loader2 } from "lucide-react";
 
 type PlacedIcon = {
   id: string;
@@ -463,31 +463,25 @@ export default function TierMaker() {
       try {
         setIsExporting(true);
         
-        // Wait for all images to be fully loaded and decoded
+        // 1. Wait for React to finish re-rendering the 'export mode' styles
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 2. Ensure all images are fully loaded and decoded in the current DOM
         const images = plotRef.current.querySelectorAll("img");
-        const imagePromises = Array.from(images).map((img) => {
-          if (img.complete) return Promise.resolve();
+        await Promise.all(Array.from(images).map((img) => {
+          if (img.complete) return img.decode().catch(() => {});
           return new Promise((resolve) => {
             img.onload = resolve;
             img.onerror = resolve;
-          });
-        });
-        
-        // Also use the modern decode() method for extra reliability
-        const decodePromises = Array.from(images).map((img) => {
-          return img.decode().catch(() => {});
-        });
-
-        await Promise.all([...imagePromises, ...decodePromises]);
-        // Small buffer for browser rendering cycle
-        await new Promise(resolve => setTimeout(resolve, 200));
+          }).then(() => img.decode().catch(() => {}));
+        }));
 
         const width = plotRef.current.offsetWidth;
         const height = plotRef.current.offsetHeight;
 
-        const dataUrl = await toPng(plotRef.current, {
+        const options = {
           backgroundColor: "#fff",
-          cacheBust: false, // Disabled to use optimized caching and prevent redundant fetches
+          cacheBust: false,
           pixelRatio: 2,
           width: width,
           height: height,
@@ -500,7 +494,7 @@ export default function TierMaker() {
             borderRadius: '0',
             fontFamily: "Arial, sans-serif",
           },
-          filter: (node) => {
+          filter: (node: Node) => {
             if (node instanceof HTMLElement && node.classList.contains("delete-button-ignore")) {
               return false;
             }
@@ -509,7 +503,16 @@ export default function TierMaker() {
             }
             return true;
           },
-        });
+        };
+
+        // 3. The "Double-Call Hack": The first call warms up the internal cache of html-to-image
+        await toPng(plotRef.current, options);
+        // Small gap between calls
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 4. The actual capture
+        const dataUrl = await toPng(plotRef.current, options);
+
         const link = document.createElement("a");
         link.download = `${projects.find(p => p.id === currentProjectId)?.name || 'plot'}.png`;
         link.href = dataUrl;
@@ -539,6 +542,17 @@ export default function TierMaker() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-8 text-gray-900">
+      {/* Export Loading Overlay */}
+      {isExporting && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex flex-col items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
+            <Loader2 className="animate-spin" size={48} style={{ color: LL_PINK }} />
+            <div className="text-lg font-bold text-gray-800">画像を生成中...</div>
+            <p className="text-sm text-gray-500">これには数秒かかる場合があります</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto space-y-6 md:y-8">
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 pb-4 md:pb-6">
           <div className="text-center md:text-left">
@@ -994,6 +1008,8 @@ export default function TierMaker() {
                     <img
                       src={icon.src}
                       alt="placed"
+                      loading="eager"
+                      decoding="sync"
                       className={`w-10 h-10 md:w-20 md:h-20 rounded-full border-2 transition-all object-cover flex-shrink-0 min-w-[40px] min-h-[40px] md:min-w-[80px] md:min-h-[80px] ${
                         isExporting ? "shadow-none border-white" : "shadow-md " + (selectedIconId === icon.id ? "scale-110 ring-4 z-50" : "border-white")
                       }`}

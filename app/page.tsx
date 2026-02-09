@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
-import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, Folder, Save, FilePlus, List, X, Edit3, Settings2, Target, CircleDashed, Check, Loader2 } from "lucide-react";
+import { Download, Trash2, RefreshCcw, Plus, Eye, EyeOff, List, X, Edit3, Settings2, Target, CircleDashed, Check, Loader2 } from "lucide-react";
 
 type PlacedIcon = {
   id: string;
@@ -45,6 +45,22 @@ type Project = {
 type GroupedIcons = Record<string, string[]>;
 
 const LL_PINK = "#E4007F";
+
+const percentToVal = (percent: number, min: number, max: number, isY = false) => {
+  if (isY) {
+    return max - (percent / 100) * (max - min);
+  }
+  return min + (percent / 100) * (max - min);
+};
+
+const valToPercent = (val: number, min: number, max: number, isY = false) => {
+  if (max === min) return 50;
+  const percent = ((val - min) / (max - min)) * 100;
+  if (isY) {
+    return 100 - percent;
+  }
+  return percent;
+};
 
 export default function TierMaker() {
   const [icons, setIcons] = useState<GroupedIcons>({});
@@ -207,30 +223,35 @@ export default function TierMaker() {
     } else {
       setCoordInputs({ x: "-", y: "-" });
     }
-  }, [selectedIconId, draggingId, axisRanges]);
+  }, [selectedIconId, draggingId, axisRanges, placedIcons]);
 
-  // Auto-save current project
+  // Auto-save current project - debounced to prevent sync issues during rapid typing
   useEffect(() => {
-    if (isLoaded && currentProjectId) {
-      const updatedProjects = projects.map(p => {
-        if (p.id === currentProjectId) {
-          return {
-            ...p,
-            placedIcons,
-            axisLabels,
-            visibleLabels,
-            axisRanges,
-            updatedAt: Date.now()
-          };
-        }
-        return p;
+    if (!isLoaded || !currentProjectId) return;
+
+    const timer = setTimeout(() => {
+      setProjects(prev => {
+        const updated = prev.map(p => 
+          p.id === currentProjectId 
+            ? { ...p, placedIcons, axisLabels, visibleLabels, axisRanges, updatedAt: Date.now() }
+            : p
+        );
+        return updated;
       });
-      
-      setProjects(updatedProjects);
-      localStorage.setItem("lovelive-projects", JSON.stringify(updatedProjects));
-      localStorage.setItem("lovelive-current-project-id", currentProjectId);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [placedIcons, axisLabels, visibleLabels, axisRanges, isLoaded, currentProjectId]);
+
+  // Separate effect for localStorage to ensure it's always in sync with projects state
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("lovelive-projects", JSON.stringify(projects));
+      if (currentProjectId) {
+        localStorage.setItem("lovelive-current-project-id", currentProjectId);
+      }
     }
-  }, [placedIcons, axisLabels, visibleLabels, axisRanges, isLoaded]);
+  }, [projects, currentProjectId, isLoaded]);
 
   const openCreateModal = () => {
     setModalMode("create");
@@ -421,22 +442,6 @@ export default function TierMaker() {
 
   const handleDragEnd = () => {
     setDraggingId(null);
-  };
-
-  const percentToVal = (percent: number, min: number, max: number, isY = false) => {
-    if (isY) {
-      return max - (percent / 100) * (max - min);
-    }
-    return min + (percent / 100) * (max - min);
-  };
-
-  const valToPercent = (val: number, min: number, max: number, isY = false) => {
-    if (max === min) return 50;
-    const percent = ((val - min) / (max - min)) * 100;
-    if (isY) {
-      return 100 - percent;
-    }
-    return percent;
   };
 
   const handleCoordInputChange = (axis: 'x' | 'y', value: string) => {
@@ -662,18 +667,19 @@ export default function TierMaker() {
                 </h3>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-500">プロジェクト名</label>
-                  <input
-                    autoFocus
-                    type="text"
-                    value={modalInputName}
-                    onChange={(e) => setModalInputName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all"
-                    style={{ '--tw-ring-color': LL_PINK } as any}
-                    placeholder="名前を入力してください"
-                  />
-                </div>
-                <div className="flex gap-3 pt-2">
+                                      <input
+                                      autoFocus
+                                      type="text"
+                                      value={modalInputName}
+                                      onChange={(e) => setModalInputName(e.target.value)}
+                                      onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
+                                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 outline-none transition-all"
+                                      style={{ '--tw-ring-color': LL_PINK } as React.CSSProperties}
+                                      placeholder="名前を入力してください"
+                                    />
+                                  </div>
+                                  <div className="flex gap-3 pt-2">
+                  
                   <button
                     onClick={() => setShowNameModal(false)}
                     className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-colors"
@@ -893,7 +899,7 @@ export default function TierMaker() {
                 </div>
                 <div className={`flex items-center gap-4 flex-1 w-full transition-opacity duration-300 ${selectedIcon ? 'opacity-100' : 'opacity-40'}`}>
                   {selectedIcon ? (
-                    <img src={selectedIcon.src} className="w-10 h-10 rounded-full border-2 border-gray-100 shadow-sm animate-in zoom-in duration-200" />
+                    <img src={selectedIcon.src} alt="Selected icon" className="w-10 h-10 rounded-full border-2 border-gray-100 shadow-sm animate-in zoom-in duration-200" />
                   ) : (
                     <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-300">
                       <CircleDashed size={20} />
@@ -908,7 +914,7 @@ export default function TierMaker() {
                         onChange={(e) => handleCoordInputChange('x', e.target.value)}
                         disabled={!selectedIcon}
                         className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed text-gray-900"
-                        style={{ '--tw-ring-color': LL_PINK } as any}
+                        style={{ '--tw-ring-color': LL_PINK } as React.CSSProperties}
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -919,7 +925,7 @@ export default function TierMaker() {
                         onChange={(e) => handleCoordInputChange('y', e.target.value)}
                         disabled={!selectedIcon}
                         className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed text-gray-900"
-                        style={{ '--tw-ring-color': LL_PINK } as any}
+                        style={{ '--tw-ring-color': LL_PINK } as React.CSSProperties}
                       />
                     </div>
                   </div>
@@ -959,35 +965,6 @@ export default function TierMaker() {
                   <div className="w-full h-[2px] bg-gray-200" />
                   <div className="h-full w-[2px] bg-gray-200 absolute" />
                 </div>
-
-              {visibleLabels.top && (
-                <div className={`absolute top-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
-                  isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
-                }`}>
-                  {axisLabels.top}
-                </div>
-              )}
-              {visibleLabels.bottom && (
-                <div className={`absolute bottom-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
-                  isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
-                }`}>
-                  {axisLabels.bottom}
-                </div>
-              )}
-              {visibleLabels.left && (
-                <div className={`absolute left-5 top-1/2 -translate-y-1/2 -translate-x-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
-                  isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
-                }`}>
-                  {axisLabels.left}
-                </div>
-              )}
-              {visibleLabels.right && (
-                <div className={`absolute right-5 top-1/2 -translate-y-1/2 translate-x-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full text-gray-600 font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap text-gray-900 ${
-                  isExporting ? "bg-white shadow-none" : "bg-white/80 backdrop-blur-sm shadow-sm"
-                }`}>
-                  {axisLabels.right}
-                </div>
-              )}
 
               {placedIcons.map((icon, index) => (
                 <div
@@ -1032,6 +1009,35 @@ export default function TierMaker() {
                   </div>
                 </div>
               ))}
+
+              {visibleLabels.top && (
+                <div className={`absolute top-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap bg-white/30 text-gray-900/50 backdrop-blur-sm ${
+                  isExporting ? "shadow-none" : "shadow-sm"
+                }`} style={{ zIndex: 100 }}>
+                  {axisLabels.top}
+                </div>
+              )}
+              {visibleLabels.bottom && (
+                <div className={`absolute bottom-2 left-1/2 -translate-x-1/2 px-3 md:px-4 py-0.5 md:py-1 rounded-full font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap bg-white/30 text-gray-900/50 backdrop-blur-sm ${
+                  isExporting ? "shadow-none" : "shadow-sm"
+                }`} style={{ zIndex: 100 }}>
+                  {axisLabels.bottom}
+                </div>
+              )}
+              {visibleLabels.left && (
+                <div className={`absolute left-5 top-1/2 -translate-y-1/2 -translate-x-1/2 -rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap bg-white/30 text-gray-900/50 backdrop-blur-sm ${
+                  isExporting ? "shadow-none" : "shadow-sm"
+                }`} style={{ zIndex: 100 }}>
+                  {axisLabels.left}
+                </div>
+              )}
+              {visibleLabels.right && (
+                <div className={`absolute right-5 top-1/2 -translate-y-1/2 translate-x-1/2 rotate-90 origin-center px-3 md:px-4 py-0.5 md:py-1 rounded-full font-bold text-[10px] md:text-sm pointer-events-none border border-gray-100 whitespace-nowrap bg-white/30 text-gray-900/50 backdrop-blur-sm ${
+                  isExporting ? "shadow-none" : "shadow-sm"
+                }`} style={{ zIndex: 100 }}>
+                  {axisLabels.right}
+                </div>
+              )}
               </div>
               </div>
             </div>
